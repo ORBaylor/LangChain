@@ -33,12 +33,12 @@ const client = new MongoClient(uri, {
 
 
 
-async function returnEmnedding(dbID) {
+async function returnEmnedding(query) {
 
    
 
     const data = {
-        input: dbID,
+        input: query,
         model: "text-embedding-ada-002"
     }
 
@@ -54,9 +54,18 @@ async function returnEmnedding(dbID) {
         const response = await axios.post(url, data, {headers})
         //const responseData = JSON.stringify(response.body.text())
       // console.log('Response:', response.data.data[0].embedding)
-       const embedding = response.data.data[0].embedding
-       console.log('This is the Embddeing results',embedding);
+      if(response.status === 200){
+        const embedding = response.data.data[0].embedding
+      
+       findSimilarDocuments(embedding);
+        //console.log('This is the Embddeing results',embedding);
 
+        //return embedding;
+ 
+      }else {
+        throw new Error(`Failed to get embedding. Status code: ${response.status}`);
+    }
+       
        
 
     } catch (error) {
@@ -66,7 +75,7 @@ async function returnEmnedding(dbID) {
 
 }
  
- //returnEmnedding('This is may be the last ');
+ returnEmnedding('Mirgration');
 
 
 
@@ -126,6 +135,7 @@ async function insertOneThing(){
    }
 
    //console.log('This is the Embddeing results',embedding);
+   client.close();
        
     }catch (err){
         console.error('Error inserting document:', err);
@@ -135,10 +145,106 @@ async function insertOneThing(){
 
     
 }
+
+
+async function findSimilarDocuments(embedding){
+
+    //console.log("Got inside the method 1");
+    try {
+        
+       // var axios = require('axios');
+        let data = JSON.stringify({
+            "collection": "pdf",
+            "database": "Cluster0",
+            "dataSource": "Cluster0",
+            "projection": {
+                "_id": 1
+            }
+           
+
+        });
+
+        // let data = JSON.stringify({
+        //     "$search": {
+        //  "index": "default",
+        //    "knnBeta": {
+        //     "vector": embedding,
+        //         "path": "plot_embedding",
+        //          "k": 5
+        //         }
+        //     }
+        // });
+                    
+        let config = {
+            method: 'post',
+            url: 'https://us-east-1.aws.data.mongodb-api.com/app/data-eccpa/endpoint/data/v1/action/find',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Request-Headers': '*',
+              'api-key': `${process.env.MONGO_ATLAS_PASSWORD}`,
+            },
+            data: data
+        };
+                    
+        axios(config)
+            .then(function (response) {
+            //     response.aggregate();
+                
+
+            //    const aggRes =  response.aggregate([ 
+            
+            //             {
+                          
+            //             "$search": {
+            //             "index": "default",
+            //             "knnBeta": {
+            //             "vector": embedding,
+            //             "path": "plot_embedding",
+            //             "k": 5
+            //             }
+            //             }
+            //          }  ]);
+            //     console.log(`Got A response: ${aggRes}`)
+           
+                console.log(JSON.stringify(response.data));
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        
+        //Query for similar documents 
+        
+        // const documents = await usersCollection.aggregate([ 
+            
+        //     {
+              
+        //     // "$search": {
+        //     // "index": "default",
+        //     // "knnBeta": {
+        //     // "vector": embedding,
+        //     // "path": "plot_embedding",
+        //     // "k": 5
+        //     // }
+        //     // }
+        //  }  ]);
+                
+                
+         
+        //console.log(documents);
+
+
+
+    } catch (error) {
+        
+    }
+
+
+
+}
 //const usersCollection = client.db('Cluster0').collection('pdf');
 
 // const CollectionName = usersCollection.find({_id: "64bdf28cf8214addd7f4064f"}, {name: 1})
 //const CollectionName = client.db('Cluster0').collection('pdf');
 
 //console.log(CollectionName);
-insertOneThing();
+//insertOneThing();

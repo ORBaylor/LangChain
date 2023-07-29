@@ -18,5 +18,5 @@ const splitter = new RecursiveCharacterTextSplitter({
 
 const output = await splitter.createDocuments(docs.toString())
 
-console.log(output);
+console.log(output[0]);
 
