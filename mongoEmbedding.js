@@ -53,17 +53,16 @@ async function returnEmnedding(query) {
 
         const response = await axios.post(url, data, {headers})
         //const responseData = JSON.stringify(response.body.text())
-       //console.log('Response:', response.data.data[0].embedding)
-     //  findSimilarDocuments(response.data.data[0].embedding);
+      //console.log('Response:', response.data.data[0].embedding)
       if(response.status === 200){
         const embedding = response.data.data[0].embedding
-      findSimilarDocuments(embedding)
-       
-      return embedding
+      
+      // findSimilarDocuments(embedding);
+      // return embedding
        //findSimilar(embedding);
         //console.log('This is the Embddeing results',embedding);
 
-        //return embedding;
+        return embedding;
  
       }else {
         throw new Error(`Failed to get embedding. Status code: ${response.status}`);
@@ -78,16 +77,16 @@ async function returnEmnedding(query) {
 
 }
  
- 
+ returnEmnedding('test');
 
 
 
-async function insertOneThing(){
+async function insertOneThing(query){
     const usersCollection = client.db('Cluster0').collection('pdf');
     //const usersCollection = client.db.
     
     const testDoc = {
-        name: "The really big test "
+        name: `${query}`
     }
 
     try{
@@ -150,15 +149,73 @@ async function insertOneThing(){
     
 }
 
-//insertOneThing()
+insertOneThing("This is the next best thing. This will be bigger than everything")
 
 async function findSimilarDocuments(embedding){
 
-    console.log("Got inside the method 1");
+    //console.log("Got inside the method 1");
     let similarDocuments = [];
+    //console.log('Similar',similarDocuments);
     try {
             
-       
+        // let config = {
+        //     method: 'post',
+        //     url: 'https://us-east-1.aws.data.mongodb-api.com/app/data-eccpa/endpoint/data/v1/action/aggregate',
+           
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //       'Access-Control-Request-Headers': '*',
+        //       'api-key': `${process.env.MONGO_ATLAS_PASSWORD}`,
+        //     },
+        //     data: {
+        //         collection:"pdf",
+        //         database:"Cluster0",
+        //         dataSource:"Cluster0",
+        //         pipeline: [
+            
+        //             {
+        //                 "$search": {
+        //                     "index": "default",
+        //                     "knnBeta": {
+        //                     "vector": embedding,
+        //                     "path": "plot_embedding",
+        //                     "k": 5
+        //                     }
+        //                     }
+        //             }
+        //         ]
+        //     }
+            
+        // };
+
+
+                    
+        // axios(config)
+        //     .then(function (response) {
+          
+           
+        //         //console.log(JSON.stringify(response.data));
+
+        //        // const documents =  response.data.toString();
+        //         if(response.status === 200){
+                   
+        //            similarDocuments = response.data.documents;
+        //            //console.log('Inside of the findSimilar method', similarDocuments)
+        //            return similarDocuments
+                  
+        //         }
+        //         else{
+        //             throw new Error('error')
+        //         }
+               
+        //         //console.log(documents)
+
+
+        //     })
+        //     .catch(function (error) {
+        //         console.log(error);
+        //     });
+        
 
 
             const url= 'https://us-east-1.aws.data.mongodb-api.com/app/data-eccpa/endpoint/data/v1/action/aggregate'
@@ -174,7 +231,7 @@ async function findSimilarDocuments(embedding){
                             "knnBeta": {
                             "vector": embedding,
                             "path": "plot_embedding",
-                            "k": 5
+                            "k": 1
                             }
                             }
                     }
@@ -185,16 +242,16 @@ async function findSimilarDocuments(embedding){
                 'Access-Control-Request-Headers': '*',
                 'api-key': `${process.env.MONGO_ATLAS_PASSWORD}`,
               }
-
+              
+              
             const response = await axios.post(url, data, {headers})
-             console.log(response.data);
+            
+            // console.log('New Axios methods',response.data.documents);
+             
 
-             if(response.status === 200){
-                console.log('New Axios methods embeddings',response.data);
-                similarDocuments = response.data;
-                return similarDocuments;
-             }
-
+             similarDocuments = response.data.documents;
+             //console.log('Similar',similarDocuments);
+                return similarDocuments
     } catch (error) {
         
     }
@@ -207,15 +264,15 @@ async function findSimilarDocuments(embedding){
 
 async function main(query){
     
-   const newquery = query.toLowerCase()
+   // const query = 'test'
    let document =[]
 
     try {
-        const embedding = await returnEmnedding(newquery);
-        //console.log('This is the main function embdedding: ',embedding)
+        const embedding = await returnEmnedding(query);
+      //  console.log('This is the main function embdedding: ',embedding)
          document = await findSimilarDocuments(embedding);
 
-       console.log('This is the main function document: ',document)
+        console.log('This is the main function document: ',document)
 
     } catch (error) {
         
@@ -224,5 +281,3 @@ async function main(query){
 //main('test')
 
 //nsertOneThing();
-
-returnEmnedding('test');
